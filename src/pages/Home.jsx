@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Box, Container, Typography, Button, TextField } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const StyledContainer = styled(Container)({
     minHeight: "100vh",
@@ -17,7 +18,44 @@ const Home = () => {
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
 
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    
     const navigate = useNavigate();
+
+    const handleSignIn = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+
+        if(!email || !password) {
+            setError("All fields are mandatory");
+            setLoading(false);
+            return;
+        }
+
+        const loginData = {
+            email,
+            password
+        }
+        console.log(loginData);
+
+        try {
+            const response = await axios.post("/api/user/login", loginData);
+            console.log(response.data)
+            localStorage.setItem("user", JSON.stringify(response.data.data));
+            navigate("/chat")
+
+            setEmail("");
+            setPassword("");
+
+            setLoading(false);
+        } catch (error) {
+            console.log(`SignIn Error :: ${error.message}`);
+            setError(error.message);
+            setLoading(false);
+        }
+    }
 
     return (
         <StyledContainer maxWidth="sm">
@@ -61,7 +99,12 @@ const Home = () => {
                             Show
                         </p>
                     </div>
+
+                    {/* error */}
+                    {error ? (<p className="text-sm text-red-500"> { error } </p>) : null}
+
                     <Button
+                    onClick={handleSignIn}
                         fullWidth
                         variant="contained"
                         sx={{
@@ -73,7 +116,7 @@ const Home = () => {
                             },
                         }}
                     >
-                        Sign In
+                        {loading ? "Loading..." : "Sign In"}
                     </Button>
                     <Button
                         onClick={() => navigate("/signup")}

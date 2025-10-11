@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Box, Container, Typography, Button, TextField } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const StyledContainer = styled(Container)({
     minHeight: "100vh",
@@ -18,7 +19,46 @@ const SignupPage = () => {
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
 
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
     const navigate = useNavigate();
+
+    const handleSignup = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+
+        if(!username || !email || !password) {
+            setError("All fields are mandatory");
+            setLoading(false);
+            return;
+        }
+
+        const newUser = {
+            username,
+            email,
+            password
+        }
+        // console.log(newUser);
+
+        try {
+            const response = await axios.post("/api/user/signup", newUser);
+            console.log(response.data)
+            localStorage.setItem("user", JSON.stringify(response.data.data));
+            navigate("/chat")
+
+            setEmail("");
+            setUsername("");
+            setPassword("");
+
+            setLoading(false);
+        } catch (error) {
+            console.log(`SignUp Error :: ${error.message}`);
+            setError(error.message);
+            setLoading(false);
+        }
+    }
 
     return (
         <StyledContainer maxWidth="sm">
@@ -71,7 +111,12 @@ const SignupPage = () => {
                             Show
                         </p>
                     </div>
+
+                    {/* error */}
+                    {error ? (<p className="text-sm text-red-500"> { error } </p>) : null}
+
                     <Button
+                        onClick={handleSignup}
                         fullWidth
                         variant="contained"
                         sx={{
@@ -83,7 +128,7 @@ const SignupPage = () => {
                             },
                         }}
                     >
-                        Create Account
+                        {loading ? "Loading..." : "Create Account"}
                     </Button>
                     <Button
                         onClick={() => navigate("/")}

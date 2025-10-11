@@ -1,8 +1,10 @@
 import React from 'react'
 
 const ChatPage = () => {
+  const user = JSON.parse(localStorage.getItem("user")) || "";
+
   return (
-	<div>ChatPage</div>
+	<div>Hi, {user.username}</div>
   )
 }
 
